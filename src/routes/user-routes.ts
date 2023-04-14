@@ -28,7 +28,7 @@ export async function userRoutes(app: FastifyInstance) {
 
     // guarda o id do usuário como cookie para as próximas requisições
     const sessionId = id
-    reply.cookie('session', sessionId, {
+    reply.cookie('sessionId', sessionId, {
       path: '/',
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     })
