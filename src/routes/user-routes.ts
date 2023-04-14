@@ -1,8 +1,10 @@
 import { hash } from 'bcryptjs'
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import crypto from 'node:crypto'
 import { z } from 'zod'
 import { knex } from '../database'
+import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
+import { Meal, bestDietMealSequence } from '../utils/best-diet-meal-sequence'
 
 export async function userRoutes(app: FastifyInstance) {
   // registrar um usuário
@@ -36,6 +38,57 @@ export async function userRoutes(app: FastifyInstance) {
     return reply.status(201).send()
   })
 
-  // login - fazer o login com email e password e retorna o cookie (sessionId do usuário)
-  app.post('/login', () => {})
+  /* 
+  Deve ser possível recuperar as métricas de um usuário:
+    - Quantidade total de refeições registradas;
+    - Quantidade total de refeições dentro da dieta;
+    - Quantidade total de refeições fora da dieta;
+    - Melhor sequência por dia de refeições dentro da dieta;
+  */
+
+  app.get(
+    '/summary',
+    { preHandler: [checkSessionIdExists] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { sessionId } = request.cookies
+
+      // total de refeições registradas
+      const [{ numberOfMeals }] = await knex('meals')
+        .where({
+          user_id: sessionId,
+        })
+        .count('id', { as: 'numberOfMeals' })
+
+      // Quantidade total de refeições dentro da dieta;
+      const [{ numberOfMealsInDiet }] = await knex('meals')
+        .where({
+          user_id: sessionId,
+          isDiet: true,
+        })
+        .count('id', { as: 'numberOfMealsInDiet' })
+
+      // Quantidade total de refeições fora da dieta;
+      const [{ numberOfMealsOutDiet }] = await knex('meals')
+        .where({
+          user_id: sessionId,
+          isDiet: false,
+        })
+        .count('id', { as: 'numberOfMealsOutDiet' })
+
+      const meals: Meal[] = await knex('meals')
+        .where({
+          user_id: sessionId,
+        })
+        .orderBy('datetime')
+
+      const bestSequence = bestDietMealSequence(meals)
+
+      return reply.status(200).send({
+        numberOfMeals,
+        numberOfMealsInDiet,
+        numberOfMealsOutDiet,
+        bestSequence,
+      })
+    },
+  )
 }
