@@ -6,8 +6,8 @@ API para controle de dieta diária.
 
 ## Regras da aplicação
 - [x] Deve ser possível criar um usuário;
-- [ ] Deve ser possível identificar o usuário entre as requisições (middleware para identificar o usuário);
-- [ ] Deve ser possível registar uma refeição feita, com as seguintes informações:
+- [x] Deve ser possível identificar o usuário entre as requisições (middleware para identificar o usuário);
+- [x] Deve ser possível registar uma refeição feita, com as seguintes informações:
   - Nome;
   - Descrição;
   - Data e Hora;
