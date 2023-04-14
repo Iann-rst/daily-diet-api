@@ -1,10 +1,15 @@
+import cookie from '@fastify/cookie'
 import fastify from 'fastify'
 import { env } from './env'
 import { userRoutes } from './routes/user-routes'
 
 const app = fastify()
 
-app.register(userRoutes)
+app.register(cookie)
+
+app.register(userRoutes, {
+  prefix: '/users',
+})
 
 app
   .listen({
